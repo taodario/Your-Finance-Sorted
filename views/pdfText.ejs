@@ -15,8 +15,40 @@
 </head>
 
 <body>
-    <h1>Extracted PDF Text</h1>
-    <pre><%= pdfText %></pre>
+    <h1>Extracted Transactions</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction Date</th>
+                <th>Posting Date</th>
+                <th>Description</th>
+                <th>Transaction</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% transactions.forEach(transaction=> { %>
+                <tr>
+                    <td>
+                        <%=transaction['Transaction Date'] %>
+                    </td>
+                    <td>
+                        <%=transaction['Posting Date'] %>
+                    </td>
+                    <td>
+                        <%=transaction['Description'] %>
+                    </td>
+                    <td>
+                        <%=transaction['Transaction ID'] %>
+                    </td>
+                    <td>
+                        <%=transaction['Amount'] %>
+                    </td>
+                </tr>
+                <% }); %>
+        </tbody>
+    </table>
+
 </body>
 
 </html>
