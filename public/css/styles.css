@@ -1,0 +1,21 @@
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px; /* Space between cells */
+
+}
+
+th, td {
+    /* border: 1px solid #ccc; */
+    /* padding: 12px; Add padding for space inside cells */
+    text-align: left;
+}
+
+.user-description-data input {
+    width: 100%; /* Make the input field take up the full width of the cell */
+    box-sizing: border-box; /* Ensures padding and border are included in the width */
+}
+
+/* th {
+    background-color: #f4f4f4;
+} */

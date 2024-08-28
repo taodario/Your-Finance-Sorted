@@ -1,12 +1,18 @@
 import express from "express";
 import multer from "multer";
-import path, { parse } from "path";
+import path from "path";
 import { parsePdf } from "./pdfParser.js";
 import axios from "axios";
+import { fileURLToPath } from "url";
 
 const port = 3000;
 const app = express();
 const upload = multer({dest: 'uploads/'})
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.render('index.ejs');

@@ -12,18 +12,20 @@
             font-family: monospace;
         }
     </style>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 
 <body>
-    <h1>Extracted Transactions</h1>
+    <h1>Your Transactions</h1>
     <table>
         <thead>
             <tr>
                 <th>Transaction Date</th>
                 <th>Posting Date</th>
                 <th>Description</th>
-                <th>Transaction</th>
+                <th>Transaction ID</th>
                 <th>Amount</th>
+                <th class="user-description-data">Description</th>
             </tr>
         </thead>
         <tbody>
@@ -43,6 +45,9 @@
                     </td>
                     <td>
                         <%=transaction['Amount'] %>
+                    </td>
+                    <td class="user-description-data">
+                        <input type="text" name="descriptions">
                     </td>
                 </tr>
                 <% }); %>
