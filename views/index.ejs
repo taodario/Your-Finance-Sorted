@@ -8,11 +8,19 @@
 </head>
 
 <body>
-    <h1>Upload Credit Card Statement PDF</h1>
-    <form action="/upload" enctype="multipart/form-data" method="post">
-        <input type="file" name="pdfFile" accept=".pdf" required>
-        <button type="submit">Upload</button>
-    </form>
+    <% if (user) { %>
+        <h1>Welcome, <%= user.displayName %>!</h1>
+        <a href="/logout">Logout</a>
+        <% } else { %>
+            <h1>Welcome! Please log in.</h1>
+            <a href="/auth/google">Login with Google</a>
+            <% } %>
+
+                <h1>Upload Credit Card Statement PDF</h1>
+                <form action="/upload" enctype="multipart/form-data" method="post">
+                    <input type="file" name="pdfFile" accept=".pdf" required>
+                    <button type="submit">Upload</button>
+                </form>
 </body>
 
 </html>
