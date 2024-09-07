@@ -130,8 +130,20 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
         });
 
         const data = response.data;
-        res.render('pdfText.ejs', { transactions: data});
 
+        // check if user is authenticated
+        if (req.isAuthenticated()) {
+            try {
+                // save pdf metadata and transactions
+                const [pdf] = await pool.query('INSERT INTO pdfs (user_id, filename, upload_date) VALUES (?, ?, NOW())',
+                    [req.user.id, req.file.filename]);  
+            } catch (dbError) {
+                console.error('Database error:', dbError);
+            }
+        }
+
+        res.render('pdfText.ejs', { transactions: data});
+        
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error')
