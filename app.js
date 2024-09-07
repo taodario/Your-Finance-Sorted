@@ -8,6 +8,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from 'dotenv';
+import pool from "./db.js";
 
 dotenv.config(); // load environment variables
 
@@ -36,10 +37,51 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: 'http://localhost:3000/google/callback'
     },
-    (accessToken, refreshToken, profile, done) => {
-        return done(null, profile);
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            // check if the user exists
+            let [rows] = await pool.query('SELECT * FROM users WHERE google_id = ?', [profile.id]);
+            let user = rows[0];
+
+            if (!user) {
+                const [result] = await pool.query('INSERT INTO users (google_id, email, username) VALUES (?, ?, ?)',
+                    [profile.id, profile.emails[0].value, profile.displayName]);
+                
+                user = {
+                    id: result.insertId,
+                    google_id: profile.id,
+                    email: profile.emails[0].value,
+                    username: profile.displayName
+                };
+            }
+            return done(null, user);
+
+        } catch {
+            console.error('database error:', error);
+            return done(error, null);
+        }
+
     }
 ));
+
+// test the database connection
+app.get('/db-test', async (req, res) => {
+    try {
+        const username = 'sampleuser2';
+        const email = 'sampleuser2@example.com';
+
+        // insert sample user into users table
+
+        const [result] = await pool.query(
+            'INSERT INTO users (username, email) VALUES (?, ?)',
+            [username, email]
+        );
+        res.send(`User inserted with ID: ${result.insertId}`);
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).send('Database connection failed.');
+    }
+});
 
 // serialize user for the session
 passport.serializeUser((user, done) => {
