@@ -21,8 +21,9 @@ async function switchToText(inputField, parentTd) {
     textNode.textContent = text;
 
     const transactionId = inputField.dataset.transactionId;
+    const pdfId = document.body.dataset.pdfId;
 
-    // checks body tag for isAuthenticated attributed
+    // checks body tag for isAuthenticated attribute
     const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
 
     if (isAuthenticated) {
@@ -33,7 +34,11 @@ async function switchToText(inputField, parentTd) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify( { transactionId, description: text} )
+                body: JSON.stringify( {
+                     pdfId: document.body.dataset.pdfId, 
+                     transactionId: inputField.dataset.transactionId,
+                     description: inputField.value
+                    } )
             });
 
             if (response.ok) {

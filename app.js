@@ -103,6 +103,46 @@ app.get('/google/callback',
         res.redirect('/');
     }
 )
+
+app.use(express.json());
+
+app.post('/update-description', async(req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({message: 'You must be logged in to update descriptions'});
+    }
+
+    const { pdfId, transactionId, description } = req.body;
+
+    if (!pdfId || !transactionId || typeof description !== 'string') {
+        return res.status(400).json({ message: 'Invalid input.' });
+    }
+
+    try {
+        const [pdfRows] = await pool.query(
+            'SELECT id FROM pdfs WHERE id = ? AND user_id = ?',
+            [pdfId, req.user.id]
+        );
+        
+        if (pdfRows.length === 0) {
+            return res.status(404).json({ message: 'PDF not found or you do not have permission to update it. '});
+
+        }
+
+        const [result] = await pool.query(
+            'UPDATE transactions SET user_description = ? WHERE pdf_id = ? AND transaction_id = ?',
+            [description, pdfId, transactionId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Transaction not found for this PDF.' });
+        }
+
+        res.json({ message: 'Description updated successfully.' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'An error occurred while updating the description.' });
+    }
+})
     
 
 app.get('/', (req, res) => {
@@ -130,15 +170,35 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
         });
 
         const data = response.data;
-        
         const isAuthenticated = req.isAuthenticated();
+        let pdfId = null;
 
         // check if user is authenticated
         if (isAuthenticated) {
             try {
                 // save pdf metadata and transactions
-                const [pdf] = await pool.query('INSERT INTO pdfs (user_id, filename, upload_date) VALUES (?, ?, NOW())',
+                const [pdfResult] = await pool.query('INSERT INTO pdfs (user_id, filename, upload_date) VALUES (?, ?, NOW())',
                     [req.user.id, req.file.filename]);  
+
+                pdfId = pdfResult.insertId;
+
+                // save transactions
+                for (let transaction of data) {
+                    await pool.query(`
+                        INSERT INTO transactions 
+                        (pdf_id, transaction_date, posting_date, description, transaction_id, amount) 
+                        VALUES (?, ?, ?, ?, ?, ?)`,
+                        [
+                            pdfId,
+                            convertDate(transaction['Transaction Date']),
+                            convertDate(transaction['Posting Date']),
+                            transaction['Description'],
+                            transaction['Transaction ID'],
+                            parseFloat(transaction['Amount'].replace('$', ''))
+                        ]
+                    );            
+                }
+
             } catch (dbError) {
                 console.error('Database error:', dbError);
             }
@@ -146,7 +206,8 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
 
         res.render('pdfText.ejs', { 
             transactions: data,
-            isAuthenticated: isAuthenticated // pass this to template
+            isAuthenticated: isAuthenticated, // pass this to template
+            pdfId: pdfId
         });
 
     } catch (error) {
@@ -158,3 +219,13 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}.`);
 })
+
+function convertDate(dateString) {
+    const months = {
+        'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04', 'MAY': '05', 'JUN': '06',
+        'JUL': '07', 'AUG': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+    };
+    const [month, day] = dateString.split(' ');
+    const year = new Date().getFullYear(); // Assumes current year, adjust if needed
+    return `${year}-${months[month]}-${day.padStart(2, '0')}`;
+}
