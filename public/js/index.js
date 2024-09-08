@@ -6,17 +6,47 @@ function createEditButton() {
 }
 
 /**
- * Switches to text (that can't be edited)
+ * Switches to text (that can't be edited, after the user hits enter)
  * to be used after user hits Enter key
  * @param {Element} inputField the input field element
  * @param {Element} parentTd the parent <td> element
  */
-function switchToText(inputField, parentTd) {
+async function switchToText(inputField, parentTd) {
     const text = inputField.value;
-    console.log('Entered text: ', text);
-
+    console.log({
+        'Entered text': text,
+        'Transaction ID': inputField.getAttribute('data-transaction-id')
+    });
     const textNode = document.createElement('span');
     textNode.textContent = text;
+
+    const transactionId = inputField.dataset.transactionId;
+
+    // checks body tag for isAuthenticated attributed
+    const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
+
+    if (isAuthenticated) {
+        try {
+            // db stuff
+            const response = await fetch('/update-description', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify( { transactionId, description: text} )
+            });
+
+            if (response.ok) {
+                console.log('Description updated successfully');
+            } else {
+                console.error('Failed to update description');
+            }
+        } catch {
+            console.error('Error:', error);
+        }
+    } else {
+        console.log('User is not authenticated. Description is not saved to database.');
+    }
 
     parentTd.removeChild(inputField);
 

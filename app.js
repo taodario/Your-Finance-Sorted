@@ -130,9 +130,11 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
         });
 
         const data = response.data;
+        
+        const isAuthenticated = req.isAuthenticated();
 
         // check if user is authenticated
-        if (req.isAuthenticated()) {
+        if (isAuthenticated) {
             try {
                 // save pdf metadata and transactions
                 const [pdf] = await pool.query('INSERT INTO pdfs (user_id, filename, upload_date) VALUES (?, ?, NOW())',
@@ -142,8 +144,11 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
             }
         }
 
-        res.render('pdfText.ejs', { transactions: data});
-        
+        res.render('pdfText.ejs', { 
+            transactions: data,
+            isAuthenticated: isAuthenticated // pass this to template
+        });
+
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error')
