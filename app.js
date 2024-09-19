@@ -145,8 +145,21 @@ app.post('/update-description', async(req, res) => {
 })
     
 
-app.get('/', (req, res) => {
-    res.render('index.ejs', {user: req.user});
+app.get('/', async (req, res) => {
+    if (req.isAuthenticated()) {
+        try {
+            const [pdfs] = await pool.query(
+                'Slect id, filename, upload_date FROM pdfs WHERE user_id = ? ORDER BY upload_date DESC',
+                [req.user.id]
+            );
+            res.render('index.ejs', { user: req.user, pdfs: pdfs });
+        } catch (error) {
+            console.error('Database erorr:', error);
+            res.render('index.ejs', { user: req.user, pdfs: [] });
+        }
+    } else {
+        res.render('index.ejs', { user: null, pdfs: [] });
+    }
 })
 
 app.get('/logout', (req, res) => {
@@ -214,6 +227,14 @@ app.post('/upload', upload.single('pdfFile'), async (req, res) => {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error')
     }
+})
+
+app.get('/view-pdf:id', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/');
+    }
+
+    
 })
 
 app.listen(port, () => {

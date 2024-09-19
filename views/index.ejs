@@ -11,16 +11,33 @@
     <% if (user) { %>
         <h1>Welcome, <%= user.username %>!</h1>
         <a href="/logout">Logout</a>
-        <% } else { %>
-            <h1>Welcome! Please log in.</h1>
-            <a href="/auth/google">Login with Google</a>
-            <% } %>
 
-                <h1>Upload Credit Card Statement PDF</h1>
-                <form action="/upload" enctype="multipart/form-data" method="post">
-                    <input type="file" name="pdfFile" accept=".pdf" required>
-                    <button type="submit">Upload</button>
-                </form>
+        <h2>Your Uploaded PDFs</h2>
+        <% if (pdfs && pdfs.length> 0) { %>
+            <ul>
+                <% pdfs.forEach(pdf=> { %>
+                    <li>
+                        <a href="/view-pdf<%= pdf.id %>">
+                            <%= pdf.filename %>
+                        </a>
+                        (Uploaded on <%= new Date(pdf.upload_date).toLoacaleDateString() %>)
+                    </li>
+                    <% }); %>
+            </ul>
+            <% } else { %>
+                <p>You haven't uploaded any PDFs yet.</p>
+                <% } %>
+
+                    <% } else { %>
+                        <h1>Welcome! Please log in.</h1>
+                        <a href="/auth/google">Login with Google</a>
+                        <% } %>
+
+                            <h1>Upload Credit Card Statement PDF</h1>
+                            <form action="/upload" enctype="multipart/form-data" method="post">
+                                <input type="file" name="pdfFile" accept=".pdf" required>
+                                <button type="submit">Upload</button>
+                            </form>
 </body>
 
 </html>
