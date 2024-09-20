@@ -15,7 +15,3 @@ th, td {
     width: 100%; /* Make the input field take up the full width of the cell */
     box-sizing: border-box; /* Ensures padding and border are included in the width */
 }
-
-/* th {
-    background-color: #f4f4f4;
-} */
